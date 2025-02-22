@@ -1,0 +1,41 @@
+{
+    "manifest_version": 3,
+    "name": "CONMIGOS",
+    "version": "1.0",
+    "description": "Automatically saves AI chat contexts",
+    "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+    ],
+    "host_permissions": [
+      "https://chat.openai.com/*",
+      "https://deepseek.com/*",
+       "https://chatgpt.com/c/*",
+       "https://chat.deepseek.com/a/chat/*"
+    ],
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+            "https://chat.openai.com/*",
+            "https://deepseek.com/*",
+            "https://chatgpt.com/c/*",
+            "https://chat.deepseek.com/a/chat/*"
+            ],
+            "js": ["content.js"],
+            "run_at": "document_idle"
+        }
+        ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icon_off.png",
+            "48": "icon_off.png",
+            "128": "icon_off.png"
+        }
+    }
+  }
+  
