@@ -131,7 +131,8 @@ function insertContextIntoChat(contextText) {
     // Update this selector to match the target chat input element
     const chatInput = document.querySelector('div[id="prompt-textarea"]');
     if (chatInput) {
-        chatInput.value += contextText;
+        chatInput.innerHTML = `<p>${contextText}</p>`;
+        console.log("String version", chatInput.value)
         chatInput.focus();
         console.log("✅ Context inserted into chat input");
     } else {
@@ -150,7 +151,7 @@ async function fetchContext(prompt) {
         const data = await response.json();
         console.log("🔍 Retrieved context:", data);
         // Assume the API returns a field called `context` with the fetched text
-        return data.context || "";
+        return data.metadatas[0] || "";
     } catch (error) {
         console.error("❌ Error fetching context:", error);
         return "";

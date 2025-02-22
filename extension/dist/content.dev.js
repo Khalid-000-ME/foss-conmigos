@@ -175,7 +175,8 @@ function insertContextIntoChat(contextText) {
   var chatInput = document.querySelector('div[id="prompt-textarea"]');
 
   if (chatInput) {
-    chatInput.value += contextText;
+    chatInput.innerHTML = "<p>".concat(contextText, "</p>");
+    console.log("String version", chatInput.value);
     chatInput.focus();
     console.log("✅ Context inserted into chat input");
   } else {
@@ -211,7 +212,7 @@ function fetchContext(prompt) {
           data = _context.sent;
           console.log("🔍 Retrieved context:", data); // Assume the API returns a field called `context` with the fetched text
 
-          return _context.abrupt("return", data.context || "");
+          return _context.abrupt("return", data.metadatas[0] || "");
 
         case 12:
           _context.prev = 12;
