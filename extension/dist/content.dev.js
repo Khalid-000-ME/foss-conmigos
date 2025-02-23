@@ -44,12 +44,14 @@ function extractMessages(aiApp) {
       prompt = userMessages[userMessages.length - 1].innerText.trim();
       response = assistantMessages[assistantMessages.length - 1].innerText.trim();
     }
-  } else if (aiApp === "deepseek") {
-    var allMessages = document.querySelectorAll("[class^='']");
+  } else if (aiApp === "gemini") {
+    var _userMessages = document.querySelectorAll('p.query-text-line.ng-star-inserted');
 
-    if (allMessages.length > 1) {
-      prompt = allMessages[allMessages.length - 2].innerText.trim();
-      response = allMessages[allMessages.length - 1].innerText.trim();
+    var _assistantMessages = document.querySelectorAll('[id^="model-response-message"]');
+
+    if (_userMessages.length > 0 && _assistantMessages.length > 0) {
+      prompt = _userMessages[_userMessages.length - 1].innerText.trim();
+      response = _assistantMessages[_assistantMessages.length - 1].innerText.trim();
     }
   } // Send data only if new
 
@@ -68,7 +70,7 @@ function extractMessages(aiApp) {
 
 function setupObserver(aiApp) {
   var chatContainerSelector = aiApp === "chatgpt" ? 'div.flex.h-full.w-full.flex-col' // ChatGPT chat container
-  : '.deepseek-chat-container'; // DeepSeek chat container (adjust as needed)
+  : 'infinite-scroller'; // Gemini chat container (adjust as needed)
 
   var chatContainer = document.querySelector(chatContainerSelector);
 
@@ -162,9 +164,9 @@ function detectAIApplication() {
   if (window.location.hostname.includes("chat.openai.com") || window.location.hostname.includes("chatgpt")) {
     console.log("✅ ChatGPT detected!");
     startPolling("chatgpt");
-  } else if (window.location.hostname.includes("chat.deepseek.com")) {
-    console.log("✅ DeepSeek detected!");
-    startPolling("deepseek");
+  } else if (window.location.hostname.includes("https://gemini.google.com/app")) {
+    console.log("✅ Gemini detected!");
+    startPolling("gemini");
   } else {
     console.log("⚠️ No AI application detected.");
   }
@@ -175,7 +177,7 @@ function insertContextIntoChat(contextText) {
   var chatInput = document.querySelector('div[id="prompt-textarea"]');
 
   if (chatInput) {
-    chatInput.innerHTML = "<p>".concat(contextText, "</p>");
+    chatInput.innerHTML = "<p>".concat(contextText["up_str"], "</p>");
     console.log("String version", chatInput.value);
     chatInput.focus();
     console.log("✅ Context inserted into chat input");
@@ -212,7 +214,7 @@ function fetchContext(prompt) {
           data = _context.sent;
           console.log("🔍 Retrieved context:", data); // Assume the API returns a field called `context` with the fetched text
 
-          return _context.abrupt("return", data.metadatas[0] || "");
+          return _context.abrupt("return", data || "");
 
         case 12:
           _context.prev = 12;

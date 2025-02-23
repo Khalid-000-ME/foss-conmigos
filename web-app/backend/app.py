@@ -88,7 +88,7 @@ def get_relevant_context(user_id):
     
     results = collection.query(
         query_embeddings=[encoder.encode(query).tolist()], 
-        n_results=10  # Retrieve top 10 relevant results
+        n_results=3 # Retrieve top 10 relevant results
     )
 
     relevant_contexts = []
@@ -100,10 +100,17 @@ def get_relevant_context(user_id):
         else:
             if meta.get("user_id") == user_id:
                 relevant_contexts.append(item)
-                
+    
+    res = results["metadatas"][0] # *[1, 2, 3] ->x, y, z = 1, 2, 3
+    
+    output_string = ""
+    
+    for i in range(len(res)):
+        output_string += res[i]["type"] + ":\n\n" + res[i]["text"] + "\n\n"
+    
     print("🔍 Raw query results:", results)
 
-    return jsonify(results)
+    return jsonify({"up_str": output_string}), 200
 
 
 @app.route("/get_ctx_time/<user_id>", methods=["POST"])

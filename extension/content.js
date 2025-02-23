@@ -42,11 +42,13 @@ function extractMessages(aiApp) {
             response = assistantMessages[assistantMessages.length - 1].innerText.trim();
         }
     } 
-    else if (aiApp === "deepseek") {
-        const allMessages = document.querySelectorAll("[class^='']"); 
-        if (allMessages.length > 1) {
-            prompt = allMessages[allMessages.length - 2].innerText.trim();
-            response = allMessages[allMessages.length - 1].innerText.trim();
+    else if (aiApp === "gemini") {
+        const userMessages = document.querySelectorAll('p.query-text-line.ng-star-inserted');
+        const assistantMessages = document.querySelectorAll('[id^="model-response-message"]');
+
+        if (userMessages.length > 0 && assistantMessages.length > 0) {
+            prompt = userMessages[userMessages.length - 1].innerText.trim();
+            response = assistantMessages[assistantMessages.length - 1].innerText.trim();
         }
     }
 
@@ -63,7 +65,7 @@ function extractMessages(aiApp) {
 function setupObserver(aiApp) {
     const chatContainerSelector = aiApp === "chatgpt"
         ? 'div.flex.h-full.w-full.flex-col' // ChatGPT chat container
-        : '.deepseek-chat-container'; // DeepSeek chat container (adjust as needed)
+        : 'infinite-scroller'; // Gemini chat container (adjust as needed)
 
     let chatContainer = document.querySelector(chatContainerSelector);
     if (!chatContainer) {
@@ -119,9 +121,9 @@ function detectAIApplication() {
     if (window.location.hostname.includes("chat.openai.com") || window.location.hostname.includes("chatgpt")) {
         console.log("✅ ChatGPT detected!");
         startPolling("chatgpt");
-    } else if (window.location.hostname.includes("chat.deepseek.com")) {
-        console.log("✅ DeepSeek detected!");
-        startPolling("deepseek");
+    } else if (window.location.hostname.includes("https://gemini.google.com/app")) {
+        console.log("✅ Gemini detected!");
+        startPolling("gemini");
     } else {
         console.log("⚠️ No AI application detected.");
     }
@@ -131,7 +133,7 @@ function insertContextIntoChat(contextText) {
     // Update this selector to match the target chat input element
     const chatInput = document.querySelector('div[id="prompt-textarea"]');
     if (chatInput) {
-        chatInput.innerHTML = `<p>${contextText}</p>`;
+        chatInput.innerHTML = `<p>${contextText["up_str"]}</p>`;
         console.log("String version", chatInput.value)
         chatInput.focus();
         console.log("✅ Context inserted into chat input");
@@ -151,7 +153,7 @@ async function fetchContext(prompt) {
         const data = await response.json();
         console.log("🔍 Retrieved context:", data);
         // Assume the API returns a field called `context` with the fetched text
-        return data.metadatas[0] || "";
+        return data || "";
     } catch (error) {
         console.error("❌ Error fetching context:", error);
         return "";
