@@ -17,8 +17,7 @@ function sendDataToAPI(prompt, response) {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload),
-
+        body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => console.log("✅ Data stored successfully:", data))
@@ -121,18 +120,20 @@ function detectAIApplication() {
 
     if (window.location.hostname.includes("chat.openai.com") || window.location.hostname.includes("chatgpt")) {
         console.log("✅ ChatGPT detected!");
+        initializePopupFeature("chatgpt")
         startPolling("chatgpt");
-    } else if (window.location.hostname.includes("https://gemini.google.com/app")) {
+    } else if (window.location.hostname.includes("gemini")) {
         console.log("✅ Gemini detected!");
+        initializePopupFeature("gemini")
         startPolling("gemini");
     } else {
         console.log("⚠️ No AI application detected.");
     }
 }
 
-function insertContextIntoChat(contextText) {
+function insertContextIntoChat(aiApp, contextText) {
     // Update this selector to match the target chat input element
-    const chatInput = document.querySelector('div[id="prompt-textarea"]');
+    const chatInput = (aiApp === "chatgpt") ? document.querySelector('div[id="prompt-textarea"]'): document.querySelector('.ql-editor.textarea.new-input-ui');
     if (chatInput) {
         chatInput.innerHTML = `<p>${contextText["up_str"]}</p>`;
         console.log("String version", chatInput.value)
@@ -162,11 +163,11 @@ async function fetchContext(prompt) {
 }
 
 // Create and inject a floating button near the chat input field.
-function injectFloatingButton() {
-    const chatInput = document.querySelector('div[id="prompt-textarea"]');
+function injectFloatingButton(aiApp) {
+    const chatInput = (aiApp === "chatgpt") ? document.querySelector('div[id="prompt-textarea"]'): document.querySelector('.ql-editor.textarea.new-input-ui');
     if (!chatInput) {
         console.warn("Chat input not found. Retrying in 2 seconds...");
-        setTimeout(injectFloatingButton, 2000);
+        setTimeout(() => injectFloatingButton(aiApp), 2000);
         return;
     }
 
@@ -186,16 +187,16 @@ function injectFloatingButton() {
 
     document.body.appendChild(floatBtn);
 
-    floatBtn.addEventListener("click", showContextPopup);
+    floatBtn.addEventListener("click", () => showContextPopup(aiApp));
 }
 
 // Function to display the popup form near the text area
-function showContextPopup() {
+function showContextPopup(aiApp) {
     // Remove any existing popup
     const oldPopup = document.getElementById("context-popup");
     if (oldPopup) oldPopup.remove();
 
-    const chatInput = document.querySelector('div[id="prompt-textarea"]');
+    const chatInput = (aiApp === "chatgpt") ? document.querySelector('div[id="prompt-textarea"]'): document.querySelector('.ql-editor.textarea.new-input-ui');
     if (!chatInput) {
         console.warn("Chat input not found.");
         return;
@@ -241,7 +242,7 @@ function showContextPopup() {
         console.log("Custom prompt:", customPrompt);
         const fetchedContext = await fetchContext(customPrompt);
         if (fetchedContext) {
-            insertContextIntoChat(fetchedContext);
+            insertContextIntoChat(aiApp, fetchedContext);
         } else {
             console.warn("No context fetched.");
         }
@@ -255,23 +256,25 @@ function showContextPopup() {
 }
   
   // Initialize the injection after the page loads
-  function initializePopupFeature() {
-    injectFloatingButton();
+  function initializePopupFeature(aiApp) {
+    injectFloatingButton(aiApp);
   }
   
   // Call this function when the extension is enabled
-  chrome.storage.local.get("enabled", (data) => {
+ /* chrome.storage.local.get("enabled", (data) => {
     if (data.enabled) {
+
       initializePopupFeature();
     }
-  });
+  }); */
   
   // Optionally, also listen for toggle messages to reinitialize or remove the popup feature.
   chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "toggle") {
-      if (message.enabled) {
-        initializePopupFeature();
+      if (message.enabled && data.enabled) {
+        detectAIApplication();
       } else {
+        location.reload();
         const btn = document.querySelector("button#context-popup");
         if (btn) btn.remove();
       }
@@ -280,6 +283,7 @@ function showContextPopup() {
   
 
 // Start the script
+
 chrome.storage.local.get("enabled", (data) => {
     if (data.enabled) {
         detectAIApplication();
