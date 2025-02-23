@@ -1,5 +1,5 @@
 // Define Flask API endpoints
-const FLASK_API_URL = "http://localhost:5000";
+const FLASK_API_URL = "http://127.0.0.1:5000";
 USER_ID="user_conm"
 const STORE_CONTEXT_URL = `${FLASK_API_URL}/store_context/${USER_ID}`; // Replace with dynamic user ID if needed
 const GET_CONTEXT_URL = `${FLASK_API_URL}/get_context/${USER_ID}`
@@ -17,7 +17,8 @@ function sendDataToAPI(prompt, response) {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+
     })
     .then(response => response.json())
     .then(data => console.log("✅ Data stored successfully:", data))

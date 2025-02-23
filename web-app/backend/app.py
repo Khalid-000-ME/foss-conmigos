@@ -88,7 +88,7 @@ def get_relevant_context(user_id):
     
     results = collection.query(
         query_embeddings=[encoder.encode(query).tolist()], 
-        n_results=3 # Retrieve top 10 relevant results
+        n_results=10 # Retrieve top 10 relevant results
     )
 
     relevant_contexts = []
@@ -105,8 +105,16 @@ def get_relevant_context(user_id):
     
     output_string = ""
     
+    unique_set = []
+
     for i in range(len(res)):
-        output_string += res[i]["type"] + ":\n\n" + res[i]["text"] + "\n\n"
+        pair = (res[i]["type"], res[i]["text"])
+        if pair not in unique_set:
+            unique_set.append(pair)
+    print(unique_set)
+
+    for ele in unique_set:
+        output_string += ele[0] + ":\n" + ele[1] + "\n"
     
     print("🔍 Raw query results:", results)
 
