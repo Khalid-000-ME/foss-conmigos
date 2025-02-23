@@ -12,7 +12,8 @@
       "https://chat.openai.com/*",
       "https://deepseek.com/*",
        "https://chatgpt.com/c/*",
-       "https://chat.deepseek.com/a/chat/*"
+       "https://chat.deepseek.com/a/chat/*",
+       "https://gemini.google.com/app/*"
     ],
     "background": {
       "service_worker": "background.js"
@@ -23,7 +24,8 @@
             "https://chat.openai.com/*",
             "https://deepseek.com/*",
             "https://chatgpt.com/c/*",
-            "https://chat.deepseek.com/a/chat/*"
+            "https://chat.deepseek.com/a/chat/*",
+            "https://gemini.google.com/app/*"
             ],
             "js": ["content.js"],
             "run_at": "document_idle"

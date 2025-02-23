@@ -101,7 +101,7 @@ def get_relevant_context(user_id):
             if meta.get("user_id") == user_id:
                 relevant_contexts.append(item)
     
-    res = results["metadatas"][0] # *[1, 2, 3] ->x, y, z = 1, 2, 3
+    res = results["metadatas"][0]
     
     output_string = ""
     

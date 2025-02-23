@@ -163,18 +163,20 @@ function detectAIApplication() {
 
   if (window.location.hostname.includes("chat.openai.com") || window.location.hostname.includes("chatgpt")) {
     console.log("✅ ChatGPT detected!");
+    initializePopupFeature("chatgpt");
     startPolling("chatgpt");
-  } else if (window.location.hostname.includes("https://gemini.google.com/app")) {
+  } else if (window.location.hostname.includes("gemini")) {
     console.log("✅ Gemini detected!");
+    initializePopupFeature("gemini");
     startPolling("gemini");
   } else {
     console.log("⚠️ No AI application detected.");
   }
 }
 
-function insertContextIntoChat(contextText) {
+function insertContextIntoChat(aiApp, contextText) {
   // Update this selector to match the target chat input element
-  var chatInput = document.querySelector('div[id="prompt-textarea"]');
+  var chatInput = aiApp === "chatgpt" ? document.querySelector('div[id="prompt-textarea"]') : document.querySelector('.ql-editor.textarea.new-input-ui');
 
   if (chatInput) {
     chatInput.innerHTML = "<p>".concat(contextText["up_str"], "</p>");
@@ -187,7 +189,8 @@ function insertContextIntoChat(contextText) {
 }
 
 function fetchContext(prompt) {
-  var payload, response, data;
+  var payload, response, _data;
+
   return regeneratorRuntime.async(function fetchContext$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
@@ -211,10 +214,10 @@ function fetchContext(prompt) {
           return regeneratorRuntime.awrap(response.json());
 
         case 7:
-          data = _context.sent;
-          console.log("🔍 Retrieved context:", data); // Assume the API returns a field called `context` with the fetched text
+          _data = _context.sent;
+          console.log("🔍 Retrieved context:", _data); // Assume the API returns a field called `context` with the fetched text
 
-          return _context.abrupt("return", data || "");
+          return _context.abrupt("return", _data || "");
 
         case 12:
           _context.prev = 12;
@@ -231,12 +234,14 @@ function fetchContext(prompt) {
 } // Create and inject a floating button near the chat input field.
 
 
-function injectFloatingButton() {
-  var chatInput = document.querySelector('div[id="prompt-textarea"]');
+function injectFloatingButton(aiApp) {
+  var chatInput = aiApp === "chatgpt" ? document.querySelector('div[id="prompt-textarea"]') : document.querySelector('.ql-editor.textarea.new-input-ui');
 
   if (!chatInput) {
     console.warn("Chat input not found. Retrying in 2 seconds...");
-    setTimeout(injectFloatingButton, 2000);
+    setTimeout(function () {
+      return injectFloatingButton(aiApp);
+    }, 2000);
     return;
   } // Get bounding rectangle of the text area
 
@@ -253,15 +258,17 @@ function injectFloatingButton() {
   floatBtn.style.top = rect.top - 40 + window.scrollY + "px";
   floatBtn.style.left = rect.left + window.scrollX + "px";
   document.body.appendChild(floatBtn);
-  floatBtn.addEventListener("click", showContextPopup);
+  floatBtn.addEventListener("click", function () {
+    return showContextPopup(aiApp);
+  });
 } // Function to display the popup form near the text area
 
 
-function showContextPopup() {
+function showContextPopup(aiApp) {
   // Remove any existing popup
   var oldPopup = document.getElementById("context-popup");
   if (oldPopup) oldPopup.remove();
-  var chatInput = document.querySelector('div[id="prompt-textarea"]');
+  var chatInput = aiApp === "chatgpt" ? document.querySelector('div[id="prompt-textarea"]') : document.querySelector('.ql-editor.textarea.new-input-ui');
 
   if (!chatInput) {
     console.warn("Chat input not found.");
@@ -305,7 +312,7 @@ function showContextPopup() {
             fetchedContext = _context2.sent;
 
             if (fetchedContext) {
-              insertContextIntoChat(fetchedContext);
+              insertContextIntoChat(aiApp, fetchedContext);
             } else {
               console.warn("No context fetched.");
             }
@@ -326,22 +333,25 @@ function showContextPopup() {
 } // Initialize the injection after the page loads
 
 
-function initializePopupFeature() {
-  injectFloatingButton();
+function initializePopupFeature(aiApp) {
+  injectFloatingButton(aiApp);
 } // Call this function when the extension is enabled
 
+/* chrome.storage.local.get("enabled", (data) => {
+   if (data.enabled) {
 
-chrome.storage.local.get("enabled", function (data) {
-  if (data.enabled) {
-    initializePopupFeature();
-  }
-}); // Optionally, also listen for toggle messages to reinitialize or remove the popup feature.
+     initializePopupFeature();
+   }
+ }); */
+// Optionally, also listen for toggle messages to reinitialize or remove the popup feature.
+
 
 chrome.runtime.onMessage.addListener(function (message) {
   if (message.action === "toggle") {
-    if (message.enabled) {
-      initializePopupFeature();
+    if (message.enabled && data.enabled) {
+      detectAIApplication();
     } else {
+      location.reload();
       var btn = document.querySelector("button#context-popup");
       if (btn) btn.remove();
     }
